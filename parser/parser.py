@@ -47,7 +47,7 @@ class Parser:
                         entry += current_line
                 xml_entries.append(entry)
 
-        for i in range(1000):
+        for i in range(100):
             print xml_entries[i]
             print '='*100
 
