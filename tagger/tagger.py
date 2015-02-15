@@ -1,6 +1,7 @@
 import os
 import operator
 
+
 class Tagger:
 
     def __init__(self, dict_list):
@@ -66,14 +67,13 @@ class Tagger:
     def get_dense_scored_blogs(self, n):
         if not self.sorted_weighted:
             sorted_entries = sorted(self.weighted_scores.items(), key=operator.itemgetter(1))
-            self.sorted_weighted  = list(reversed(sorted_entries))
+            self.sorted_weighted = list(reversed(sorted_entries))
         for i in range(n):
             print self.sorted_weighted[i]
 
     def get_blog_by_id(self, id):
         blog = self.entries[id]
         return blog.get_tagged_words()
-
 
 
 class BlogEntry:
