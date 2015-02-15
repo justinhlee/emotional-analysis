@@ -10,7 +10,7 @@ This project is in progress, and the README will post high-level progress update
 I'm working with a subset of the 2009 Spinn3r data set of weblogs[1] that was processed in a previous study to sort out the personal entries from the public news-related ones. I was given a metadata text file that indicated which sections of the XML files contained personal blog entries, so the first part of annotating the data requires me to pull out the relevant sections which we will run through CoreNLP[2]. 
 
 ###Run CoreNLP on the Personal Entries###
-The output files from the previous step are to be run through Stanford's CoreNLP tool, mainly for tokenization and lemmatisation. The XML output from CoreNLP is 
+The output files from the previous step are to be run through Stanford's CoreNLP tool, mainly for tokenization and lemmatisation. The XML output from CoreNLP is then intended to be run through the tagger in the next step.
 
 ```
 java -cp "*" -Xmx2g edu.stanford.nlp.pipeline.StanfordCoreNLP -annotators tokenize,cleanxml,ssplit,pos,lemma -filelist entries.txt -outputDirectory entries-output
