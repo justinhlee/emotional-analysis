@@ -8,9 +8,7 @@ class parser_test(unittest.TestCase):
         path = '../stories12.txt'
         p = Parser(path)
         p.process_xml()
-        
-
-
+        p.print_paths_to_file()
 
 if __name__ == '__main__':
     unittest.main()
