@@ -1,6 +1,5 @@
 import csv
 import os
-import xml.etree.ElementTree as ET
 import linecache
 import errno
 
@@ -37,9 +36,6 @@ class Parser:
                 else:
                     self.locations[blog_path] = [tuple(line_number)]
             metadata.close()
-
-    def get_locations(self):
-        return self.locations
 
     def print_paths_to_file(self):
         f = open('entries.txt', 'w')
