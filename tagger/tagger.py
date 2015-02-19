@@ -106,6 +106,30 @@ class Tagger:
             t = self.sorted_weighted[i]
             towrite.write(str(t) + '\n')
 
+    def get_high_scored_tagged(self, n):
+        if not self.sorted_absolute:
+            sorted_entries = sorted(self.absolute_scores.items(), key=operator.itemgetter(1))
+            self.sorted_absolute = list(reversed(sorted_entries))
+        towrite = open('tagged_words_normalized.txt', 'w')
+        for i in range(n):
+            t = self.sorted_absolute[i]
+            entry = self.entries[t[0]]
+            towrite.write(str(t) + '\n')
+            for word in entry.get_tagged_words():
+                towrite.write(word + ': ' + str(self.dictionary[word]) + '\n')
+    
+    def get_dense_scored_tagged(self, n):
+        if not self.sorted_weighted:
+            sorted_entries = sorted(self.weighted_scores.items(), key=operator.itemgetter(1))
+            self.sorted_weighted = list(reversed(sorted_entries))
+        towrite = open('tagged_words_absolute.txt', 'w')
+        for i in range(n):
+            t = self.sorted_weighted[i]
+            entry = self.entries[t[0]]
+            towrite.write(str(t) + '\n')
+            for word in entry.get_tagged_words():
+                towrite.write(word + ': ' + str(self.dictionary[word]) + '\n')
+
     def get_blog_by_id(self, id):
         blog = self.entries[id]
         return blog.get_tagged_words()
