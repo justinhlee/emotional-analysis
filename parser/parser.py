@@ -66,7 +66,10 @@ class Parser:
             adjusted_path = '../../' + path
             for pair in line_numbers:
                 entry = ''
+
+
                 begin = int(float(pair[0]))
+
                 end = int(float(pair[1])) + 1
                 isDescription = False
                 for line in range(begin, end):
@@ -82,5 +85,5 @@ class Parser:
                 self.print_to_file(entry, 'entries/' + path, count)
                 count += 1
             completed_paths += 1
-            if (completed_paths % 10 == 0):
+            if (completed_paths % 100 == 0):
                 print '%.2f' % (100*completed_paths/float(n)) + '% completed.'

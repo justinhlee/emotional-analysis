@@ -2,6 +2,38 @@ import os
 import operator
 
 
+def get_list_of_ids(path_name):
+    ids = []
+    f = open(path_name)
+    for line in f:
+        begin = line.find('(') + 2
+        end = line.find(',') - 1
+        ids.append(line[begin: end] + '.txt')
+    f.close()
+    return ids
+
+
+def get_blogs_from_ids(output_file, id_list, blog_directory):
+    id_to_entry = {}
+    id_to_path = {}
+    for (dir, _, files) in os.walk(blog_directory):
+        for f in files:
+            path = os.path.join(dir, f)
+            if f in id_list:
+                id_to_path[f] = path
+                toopen = open(path, 'r')
+                entry = ''
+                for line in toopen:
+                    entry += (line + '\n')
+                toopen.close()
+                id_to_entry[f] = entry
+    towrite = open(output_file, 'w')
+    for i in id_list:
+        towrite.write(id_to_path[i] + '\n')
+        towrite.write(id_to_entry[i] + '\n')
+    towrite.close()
+
+
 class Tagger:
 
     def __init__(self, dict_list):
@@ -61,15 +93,18 @@ class Tagger:
         if not self.sorted_absolute:
             sorted_entries = sorted(self.absolute_scores.items(), key=operator.itemgetter(1))
             self.sorted_absolute = list(reversed(sorted_entries))
+        towrite = open('training_absolute.txt', 'w')
         for i in range(n):
-            print self.sorted_absolute[i]
+            towrite.write(str(self.sorted_absolute[i]) + '\n')
 
     def get_dense_scored_blogs(self, n):
         if not self.sorted_weighted:
             sorted_entries = sorted(self.weighted_scores.items(), key=operator.itemgetter(1))
             self.sorted_weighted = list(reversed(sorted_entries))
+        towrite = open('training_normalized.txt', 'w')
         for i in range(n):
-            print self.sorted_weighted[i]
+            t = self.sorted_weighted[i]
+            towrite.write(str(t) + '\n')
 
     def get_blog_by_id(self, id):
         blog = self.entries[id]
