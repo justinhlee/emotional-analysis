@@ -63,7 +63,7 @@ class Parser:
             # output a file per path
             line_numbers = self.locations[path]
             # edit adjusted path for current directory
-            adjusted_path = '../../' + path
+            adjusted_path = '../../data/' + path
             for pair in line_numbers:
                 entry = ''
 

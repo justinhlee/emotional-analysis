@@ -43,18 +43,21 @@ class Tagger:
         # Dominance/Control
         # Word  Wdnum   ValMn   ValSD   AroMn   AroSD   DomMn   DomSD
         #  0      1      2        3       4       5      6       7
-        # Dictionary: Word -> [Values (Mean Valence, Mean Arousal, Mean Dominance)]
+        # Dictionary: Word -> [Values: Mean Valence, Mean Arousal, Mean Dominance]
         # Entries: ID -> Blog Entries
         # Weighted Entries: ID -> Emotion Words/Total Words percentage
+        # coverage: ID -> Emotion Lemma/Total Lemmas percentage
+        # occurences: ID -> # Dictionary Occurrences
         self.dictionary = {}
         self.entries = {}
-        self.weighted_scores = {}
-        self.absolute_scores = {}
+        self.coverage = {}
+        self.occurrences = {}
         self.sorted_weighted = []
         self.sorted_absolute = []
 
         for dict_path in dict_list:
             f = open(dict_path, 'r')
+            #ANEW
             for line in f:
                 tokens = line.split()
                 values = [tokens[2], tokens[4], tokens[6]]
@@ -68,20 +71,26 @@ class Tagger:
         entry_id = entry_path[begin:end]
         lemmas = []
         tagged_words = {}
+        lemma_count = {}
         for line in f:
             if 'lemma' in line:
                 begin = line.find('<lemma>') + 7
                 end = line.rfind('</lemma>')
                 lemmas.append(line[begin:end])
         # annotate the lemmas contained in the dictionary
+        # store counts
         for lemma in lemmas:
             if lemma in self.dictionary:
                 tagged_words[lemma] = self.dictionary[lemma]
-
+                if lemma in lemma_count:
+                    lemma_count[lemma] += 1
+                else:
+                    lemma_count[lemma] = 1
+        # create BlogEntry instance
         entry = BlogEntry(lemmas, tagged_words, entry_id)
         self.entries[entry_id] = entry
-        self.weighted_scores[entry_id] = entry.get_weighted_score()
-        self.absolute_scores[entry_id] = entry.get_absolute_score()
+        self.coverage[entry_id] = entry.get_coverage()
+        self.occurrences[entry_id] = entry.get_occurrences()
         f.close()
 
     def tag_directory(self, directory_path):
@@ -89,28 +98,28 @@ class Tagger:
             if f.endswith('.xml'):
                 self.tag_entry(directory_path + '/' + f)
 
-    def get_high_scored_blogs(self, n):
+    def get_high_occurrence_blogs(self, n):
         if not self.sorted_absolute:
-            sorted_entries = sorted(self.absolute_scores.items(), key=operator.itemgetter(1))
+            sorted_entries = sorted(self.occurrences.items(), key=operator.itemgetter(1))
             self.sorted_absolute = list(reversed(sorted_entries))
-        towrite = open('training_absolute.txt', 'w')
+        towrite = open('id_occurrences.txt', 'w')
         for i in range(n):
             towrite.write(str(self.sorted_absolute[i]) + '\n')
 
-    def get_dense_scored_blogs(self, n):
+    def get_high_coverage_blogs(self, n):
         if not self.sorted_weighted:
-            sorted_entries = sorted(self.weighted_scores.items(), key=operator.itemgetter(1))
+            sorted_entries = sorted(self.coverage.items(), key=operator.itemgetter(1))
             self.sorted_weighted = list(reversed(sorted_entries))
-        towrite = open('training_normalized.txt', 'w')
+        towrite = open('id_coverage.txt', 'w')
         for i in range(n):
             t = self.sorted_weighted[i]
             towrite.write(str(t) + '\n')
 
-    def get_high_scored_tagged(self, n):
+    def get_tagged_from_high_occurence(self, n):
         if not self.sorted_absolute:
-            sorted_entries = sorted(self.absolute_scores.items(), key=operator.itemgetter(1))
+            sorted_entries = sorted(self.occurrences.items(), key=operator.itemgetter(1))
             self.sorted_absolute = list(reversed(sorted_entries))
-        towrite = open('tagged_words_normalized.txt', 'w')
+        towrite = open('tagged_high_occurrence.txt', 'w')
         for i in range(n):
             t = self.sorted_absolute[i]
             entry = self.entries[t[0]]
@@ -118,11 +127,11 @@ class Tagger:
             for word in entry.get_tagged_words():
                 towrite.write(word + ': ' + str(self.dictionary[word]) + '\n')
     
-    def get_dense_scored_tagged(self, n):
+    def get_tagged_from_high_coverage(self, n):
         if not self.sorted_weighted:
-            sorted_entries = sorted(self.weighted_scores.items(), key=operator.itemgetter(1))
+            sorted_entries = sorted(self.coverage.items(), key=operator.itemgetter(1))
             self.sorted_weighted = list(reversed(sorted_entries))
-        towrite = open('tagged_words_absolute.txt', 'w')
+        towrite = open('tagged_high_coverage.txt', 'w')
         for i in range(n):
             t = self.sorted_weighted[i]
             entry = self.entries[t[0]]
@@ -142,15 +151,21 @@ class BlogEntry:
         # have scores absolute scores
         self.id = id
         self.words = all_words
-        self.tagged_words = tagged_words
-        self.absolute_score = len(tagged_words)
-        self.weighted_score = len(tagged_words)/float(len(all_words))
+        tagged = []
+        n = 0
+        for lemma in all_words:
+            if lemma in tagged_words:
+                n += 1
+                tagged.append(lemma)
+        self.tagged_words = tagged
+        self.occurrences = n
+        self.coverage = n/float(len(all_words))
 
-    def get_weighted_score(self):
-        return self.weighted_score
+    def get_coverage(self):
+        return self.coverage
 
-    def get_absolute_score(self):
-        return self.absolute_score
+    def get_occurrences(self):
+        return self.occurrences
 
     def get_all_words(self):
         return self.words
