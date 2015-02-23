@@ -36,8 +36,8 @@ def get_blogs_from_ids(output_file, id_list, blog_directory):
 
 class Tagger:
 
-    def __init__(self, dict_list):
-        #pass in the dictionary list to use for tagging
+    def __init__(self, dict_path, d_name):
+        # pass in the dictionary to use for tagging
         # Valence - unpleasant ---- pleasant
         # Arousal - Calm ------ Excited
         # Dominance/Control
@@ -54,10 +54,18 @@ class Tagger:
         self.occurrences = {}
         self.sorted_weighted = []
         self.sorted_absolute = []
-
-        for dict_path in dict_list:
-            f = open(dict_path, 'r')
-            #ANEW
+        f = open(dict_path, 'r')
+        if d_name == 'nrc':
+            for line in f:
+                tokens = line.split()
+                word = tokens[0]
+                if word in self.dictionary:
+                    values = self.dictionary[word]
+                    self.dictionary[word] += (tokens[2])
+                else:
+                    self.dictionary[word] = [tokens[2]]
+            f.close()
+        if d_name == 'anew':
             for line in f:
                 tokens = line.split()
                 values = [tokens[2], tokens[4], tokens[6]]
