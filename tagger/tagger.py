@@ -2,6 +2,48 @@ import os
 import operator
 
 
+def extract_top_words(xml_directory):
+    words = []
+    for f in os.listdir(xml_directory):
+            if f.endswith('.xml'):
+                file_path = xml_directory + '/' + f
+                f = open(file_path, 'r')
+                for line in f:
+                    if 'word' in line:
+                        begin = line.find('<word>') + 6
+                        end = line.rfind('</word>')
+                        words.append(line[begin:end])
+                f.close()
+    return list(set(words))
+
+
+def map_unigrams(xml_filename, top_words):
+    feature_vector = []
+    words_in_file = {}
+    f = open(xml_filename, 'r')
+    for line in f:
+        if 'word' in line:
+            begin = line.find('<word>') + 6
+            end = line.rfind('</word>')
+            word = line[begin:end]
+            if word in words_in_file:
+                words_in_file[word] = words_in_file[word] + 1
+            else:
+                words_in_file[word] = 1
+    f.close()
+    for word in top_words:
+        if word in words_in_file:
+            feature_vector.append(words_in_file[word])
+        else:
+            feature_vector.append(0)
+    return feature_vector
+
+def format_to_libsvm(feature_vector):
+    for i in range(len(feature_vector)):
+        if feature_vector[i] != 0:
+            print str(i+1) + ':' + str(feature_vector[i])
+
+
 def get_list_of_ids(path_name):
     ids = []
     f = open(path_name)
@@ -48,12 +90,14 @@ class Tagger:
         # Weighted Entries: ID -> Emotion Words/Total Words percentage
         # coverage: ID -> Emotion Lemma/Total Lemmas percentage
         # occurences: ID -> # Dictionary Occurrences
+        # valence_scores: ID -> valence score
         self.dictionary = {}
         self.entries = {}
         self.coverage = {}
         self.occurrences = {}
         self.sorted_weighted = []
         self.sorted_absolute = []
+        self.valence_scores = {}
         f = open(dict_path, 'r')
         if d_name == 'nrc':
             for line in f:
@@ -106,6 +150,57 @@ class Tagger:
             if f.endswith('.xml'):
                 self.tag_entry(directory_path + '/' + f)
 
+    def score_valence(self):
+        for entry_id in self.entries:
+            entry = self.entries[entry_id]
+            lemmas = entry.get_tagged_words()
+            score = 0
+            sum_val = 0
+            min_valence = 10
+            max_valence = 0
+            for lemma in lemmas:
+                value = float(self.dictionary[lemma][0])
+                # get range
+                if (value < min_valence):
+                    min_valence = value
+                if (value > max_valence):
+                    max_valence = value
+                sum_val += value
+            emotion_range = max_valence - min_valence
+            n = len(lemmas)
+            if (n > 0):
+                score = sum_val/(len(lemmas))
+            if (emotion_range < 1) and (score > 7):
+                self.valence_scores[entry_id] = score
+            if (emotion_range < 2) and (score < 4) and (score > 0):
+                self.valence_scores[entry_id] = score
+        sorted_entries = sorted(self.valence_scores.items(), key=operator.itemgetter(1))
+        sorted_entries = list(reversed(sorted_entries))
+        towrite = open('id_scored_valence.txt', 'w')
+        for i in range(len(sorted_entries)):
+            towrite.write(str(sorted_entries[i]) + '\n')
+
+    def score_joy(self):
+        for entry_id in self.entries:
+            entry = self.entries[entry_id]
+            lemmas = entry.get_tagged_words()
+            score = 0
+            sum_val = 0
+            for lemma in lemmas:
+                value = float(self.dictionary[lemma][4])
+                sum_val += value
+            n = len(lemmas)
+            if (n > 0):
+                score = sum_val/(float(len(lemmas)))
+            if (score > 0):
+                self.valence_scores[entry_id] = score
+        sorted_entries = sorted(self.valence_scores.items(), key=operator.itemgetter(1))
+        sorted_entries = list(reversed(sorted_entries))
+        towrite = open('id_scored_joy.txt', 'w')
+        for i in range(len(sorted_entries)):
+            towrite.write(str(sorted_entries[i]) + '\n')
+        
+    
     def get_high_occurrence_blogs(self, n):
         if not self.sorted_absolute:
             sorted_entries = sorted(self.occurrences.items(), key=operator.itemgetter(1))

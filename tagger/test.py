@@ -6,23 +6,34 @@ import unittest
 class tagger_test(unittest.TestCase):
 
     def testOne(self):
+        blog_directory = 'entries-output'
+        
+        # top_words = extract_top_words(blog_directory)
+        # l = map_unigrams('entries-output/2143.txt.xml', top_words)
+        # format_to_libsvm(l)
         
 
         #CHANGE BLOG DIRECTORY
-        blog_directory = 'entries-output'
         dict1 = 'anew.txt'
         dict2 = 'nrc.txt'
         d = dict1
         t = Tagger(d, 'anew')
+        
         t.tag_directory(blog_directory)
-        t.get_tagged_from_high_coverage(50)
-        t.get_high_coverage_blogs(50)
+
+        t.score_valence()
+        l = get_list_of_ids('id_scored_valence.txt')
+        get_blogs_from_ids('top_scored_valence.txt', l, 'entries')
+
+
+        # t.score_joy()
+        # l = get_list_of_ids('id_scored_joy.txt')
+        # get_blogs_from_ids('top_scored_joy.txt', l, 'entries')
+
+
+        # t.get_tagged_from_high_coverage(50)
+        # t.get_high_coverage_blogs(50)
         # t.get_high_occurrence_blogs(50)
-
-        l = get_list_of_ids('id_coverage.txt')
-        get_blogs_from_ids('top_coverage_entries.txt', l, 'entries')
-
-
 
 if __name__ == '__main__':
     unittest.main()
