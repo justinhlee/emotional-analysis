@@ -60,7 +60,6 @@ class Parser:
         count = 0
         n = len(self.locations)
         for path in self.locations:
-            print path
             # output a file per path
             line_numbers = self.locations[path]
             # edit adjusted path for current directory

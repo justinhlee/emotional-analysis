@@ -11,7 +11,8 @@ class parser_test(unittest.TestCase):
         toread = open(path, 'r')
         for line in toread:
             # if "tiergroup-3/" in line or "tiergroup-2/" in line or "tiergroup-13/" in line:
-            if "tiergroup-12/" in line or "tiergroup-11/" in line or "tiergroup-9/" in line:
+            if "tiergroup-7/" in line:
+            # if "tiergroup-12/" in line or "tiergroup-11/" in line or "tiergroup-9/" in line:
                 entry = ' '.join(line.split())
                 towrite.write(entry + '\n')
         toread.close()

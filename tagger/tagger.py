@@ -2,80 +2,6 @@ import os
 import operator
 
 
-def extract_top_words(xml_directory):
-    words = []
-    for f in os.listdir(xml_directory):
-            if f.endswith('.xml'):
-                file_path = xml_directory + '/' + f
-                f = open(file_path, 'r')
-                for line in f:
-                    if 'word' in line:
-                        begin = line.find('<word>') + 6
-                        end = line.rfind('</word>')
-                        words.append(line[begin:end])
-                f.close()
-    return list(set(words))
-
-
-def map_unigrams(xml_filename, top_words):
-    feature_vector = []
-    words_in_file = {}
-    f = open(xml_filename, 'r')
-    for line in f:
-        if 'word' in line:
-            begin = line.find('<word>') + 6
-            end = line.rfind('</word>')
-            word = line[begin:end]
-            if word in words_in_file:
-                words_in_file[word] = words_in_file[word] + 1
-            else:
-                words_in_file[word] = 1
-    f.close()
-    for word in top_words:
-        if word in words_in_file:
-            feature_vector.append(words_in_file[word])
-        else:
-            feature_vector.append(0)
-    return feature_vector
-
-def format_to_libsvm(feature_vector):
-    for i in range(len(feature_vector)):
-        if feature_vector[i] != 0:
-            print str(i+1) + ':' + str(feature_vector[i])
-
-
-def get_list_of_ids(path_name):
-    ids = []
-    f = open(path_name)
-    for line in f:
-        begin = line.find('(') + 2
-        end = line.find(',') - 1
-        ids.append(line[begin: end] + '.txt')
-    f.close()
-    return ids
-
-
-def get_blogs_from_ids(output_file, id_list, blog_directory):
-    id_to_entry = {}
-    id_to_path = {}
-    for (dir, _, files) in os.walk(blog_directory):
-        for f in files:
-            path = os.path.join(dir, f)
-            if f in id_list:
-                id_to_path[f] = path
-                toopen = open(path, 'r')
-                entry = ''
-                for line in toopen:
-                    entry += (line + '\n')
-                toopen.close()
-                id_to_entry[f] = entry
-    towrite = open(output_file, 'w')
-    for i in id_list:
-        towrite.write(id_to_path[i] + '\n')
-        towrite.write(id_to_entry[i] + '\n')
-    towrite.close()
-
-
 class Tagger:
 
     def __init__(self, dict_path, d_name):
@@ -146,11 +72,18 @@ class Tagger:
         f.close()
 
     def tag_directory(self, directory_path):
+        count = 0
         for f in os.listdir(directory_path):
             if f.endswith('.xml'):
                 self.tag_entry(directory_path + '/' + f)
+            count += 1
+            if (count % 1000) == 0:
+                print str(count) + ' entries tagged.'
 
-    def score_valence(self):
+
+    def score_valence(self, from_highest):
+        self.valence_scores = {}
+        sorted_entries = []
         for entry_id in self.entries:
             entry = self.entries[entry_id]
             lemmas = entry.get_tagged_words()
@@ -170,11 +103,14 @@ class Tagger:
             n = len(lemmas)
             if (n > 0):
                 score = sum_val/(len(lemmas))
-            if (emotion_range < 1) and (score > 7):
-                self.valence_scores[entry_id] = score
-            if (emotion_range < 2) and (score < 4) and (score > 0):
-                self.valence_scores[entry_id] = score
+            if from_highest:
+                if (emotion_range < 2) and (score > 8):
+                    self.valence_scores[entry_id] = score
+            else:
+                if (score > 0) and (score < 3):
+                    self.valence_scores[entry_id] = score
         sorted_entries = sorted(self.valence_scores.items(), key=operator.itemgetter(1))
+        # doesn't matter to sort the list when they're all training
         sorted_entries = list(reversed(sorted_entries))
         towrite = open('id_scored_valence.txt', 'w')
         for i in range(len(sorted_entries)):
