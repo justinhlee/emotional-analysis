@@ -1,6 +1,56 @@
 import os
 import operator
 import math
+from tagger import *
+
+
+def create_training_set_nrc(blog_directory, dict_path):
+    top_words = extract_top_words(blog_directory)
+    t = Tagger(dict_path)
+    t.tag_directory(blog_directory)
+    for i in range(10):
+        towrite = open('training' + str(i), 'w')
+        threshold = 0.25
+        t.score_nrc(True, i, threshold, 2000)
+        ids = get_list_of_ids('id_scored.txt')
+        os.remove('id_scored.txt')
+        n = len(ids)
+        completed = 0
+        for blog_id in ids:
+            path = blog_directory + '/' + blog_id + '.xml'
+            towrite.write(format_to_libsvm(map_unigrams(path, top_words), True) + '\n')
+            completed += 1
+            if (completed % 100) == 0:
+                print '%.2f' % (completed*100/float(n)) + '% of training data written.'
+        t.score_nrc(False, i, threshold, n)
+        ids = get_list_of_ids('id_scored.txt')
+        n = n + len(ids)
+        print n
+        for blog_id in ids:
+            path = blog_directory + '/' + blog_id + '.xml'
+            towrite.write(format_to_libsvm(map_unigrams(path, top_words), False) + '\n')
+            completed += 1
+            if (completed % 100) == 0:
+                print '%.2f' % (completed*100/float(n)) + '% of training data written.'
+        towrite.close()
+
+
+def create_testing_set_nrc(top_words_directory, testing_directory, dict_path):
+    top_words = extract_top_words(top_words_directory)
+    t = Tagger(dict_path)
+    t.tag_directory(testing_directory)
+    towrite = open('testing.t', 'w')
+    t.get_high_coverage_blogs(200)
+    ids = get_list_of_ids('id_coverage.txt')
+    get_blogs_from_ids('testing-entries.txt', ids, 'testing-entries')
+    n = len(ids)
+    completed = 0
+    for blog_id in ids:
+        path = 'testing-output' + '/' + blog_id + '.xml'
+        towrite.write(format_to_libsvm(map_unigrams(path, top_words), True) + '\n')
+        completed += 1
+        if (completed % 30) == 0:
+            print '%.2f' % (completed*100/float(n)) + '% of testing data written.'
 
 
 def extract_similarity(top_words):
@@ -79,14 +129,14 @@ def extract_top_words(xml_directory):
                 completed += 1
                 if (completed % 1000) == 0:
                     print '%.2f' % (completed*100/float(n)) + '% top-words extraction finished.'
-    for word in words:
-        if words[word] > 4:
-            top_words.append(word)
+    # for word in words:
+    #     if words[word] > 4:
+    #         top_words.append(word)
 
-    # sorted_words = sorted(words.items(), key=operator.itemgetter(1))
-    # sorted_words = list(reversed(sorted_words))
-    # for i in range(2000):
-    #     top_words.append(sorted_words[i][0])
+    sorted_words = sorted(words.items(), key=operator.itemgetter(1))
+    sorted_words = list(reversed(sorted_words))
+    for i in range(2000):
+        top_words.append(sorted_words[i][0])
     return top_words
 
 

@@ -6,92 +6,91 @@ import unittest
 
 class tagger_test(unittest.TestCase):
 
-    # def testEntries(self):
-        # l = get_list_of_ids('id_coverage.txt')
-        # get_blogs_from_ids('top_coverage.txt', l, 'testing-entries')
-        # l = get_list_of_ids('id_scored_valence.txt')
-        # get_blogs_from_ids('top_scored_valence.txt', l, 'testing-entries')
+    # def testTesting(self):
+    #     top_words_directory = 'midsize-output'
+    #     testing_directory = 'testing-output'
+    #     dict1 = 'nrc.txt'
+    #     create_testing_set_nrc(top_words_directory, testing_directory, dict1)
 
-    # def testTestingNegative(self):
-        # blog_directory = 'midsize-output'
-        # top_words = extract_top_words(blog_directory)
-        # blog_directory = 'testing-output'
-        # dict1 = 'anew.txt'
-        # d = dict1
-        # t = Tagger(d, 'anew')
-        # t.tag_directory(blog_directory)
-        # towrite = open('testing.t', 'w')
-        # t.score_valence(False)
-        # ids = get_list_of_ids('id_scored_valence.txt')
-        # get_blogs_from_ids('testing-entries.txt', ids, 'testing-entries')
-        # n = len(ids)
-        # completed = 0
-        # for blog_id in ids:
-        #     path = 'testing-output/' + blog_id + '.xml'
-        #     towrite.write(format_to_libsvm(map_unigrams(path, top_words), False) + '\n')
-        #     completed += 1
-        #     if (completed % 30) == 0:
-        #         print '%.2f' % (completed*100/float(n)) + '% of testing data written.'
+    def testTraining(self):
+        blog_directory = 'midsize-output'
+        dict1 = 'nrc.txt'
+        create_training_set_nrc(blog_directory, dict1)
 
-    # def testTestingSet(self):
+    # def testTrainingSet(self):
     #     blog_directory = 'midsize-output'
     #     top_words = extract_top_words(blog_directory)
-    #     blog_directory = 'testing-output'
+    #     print 'Number of features: ' + str(len(top_words))
     #     dict1 = 'anew.txt'
     #     d = dict1
     #     t = Tagger(d, 'anew')
     #     t.tag_directory(blog_directory)
-    #     towrite = open('testing.t', 'w')
-    #     t.get_high_coverage_blogs(750)
-    #     ids = get_list_of_ids('id_coverage.txt')
-    #     get_blogs_from_ids('testing-entries.txt', ids, 'testing-entries')
+    #     towrite = open('training', 'w')
+
+    #     t.score_valence(True)
+    #     ids = get_list_of_ids('id_scored_valence.txt')
+    #     os.remove('id_scored_valence.txt')
+
     #     n = len(ids)
     #     completed = 0
+
     #     for blog_id in ids:
-    #         path = 'testing-output/' + blog_id + '.xml'
+    #         path = 'midsize-output/' + blog_id + '.xml'
     #         towrite.write(format_to_libsvm(map_unigrams(path, top_words), True) + '\n')
     #         completed += 1
-    #         if (completed % 30) == 0:
-    #             print '%.2f' % (completed*100/float(n)) + '% of testing data written.'
+    #         if (completed % 100) == 0:
+    #             print '%.2f' % (completed*100/float(n)) + '% of training data written.'
 
-    def testTrainingSet(self):
-        blog_directory = 'midsize-output'
-        top_words = extract_top_words(blog_directory)
-        print 'Number of features: ' + str(len(top_words))
-        dict1 = 'anew.txt'
-        d = dict1
-        t = Tagger(d, 'anew')
-        t.tag_directory(blog_directory)
-        towrite = open('training', 'w')
+    #     t.score_valence(False)
+    #     ids = get_list_of_ids('id_scored_valence.txt')
 
-        t.score_valence(True)
-        ids = get_list_of_ids('id_scored_valence.txt')
-        os.remove('id_scored_valence.txt')
+    #     n = n + len(ids)
+    #     for blog_id in ids:
+    #         path = 'midsize-output/' + blog_id + '.xml'
+    #         towrite.write(format_to_libsvm(map_unigrams(path, top_words), False) + '\n')
+    #         completed += 1
+    #         if (completed % 100) == 0:
+    #             print '%.2f' % (completed*100/float(n)) + '% of training data written.'
+    #     towrite.close()
 
-        n = len(ids)
-        completed = 0
+    # def testTrainingSetNRC(self):
+    #     blog_directory = 'midsize-output'
+    #     top_words = extract_top_words(blog_directory)
+    #     print 'Number of features: ' + str(len(top_words))
+    #     dict1 = 'nrc.txt'
+    #     d = dict1
+    #     t = Tagger(d, 'nrc')
+    #     t.tag_directory(blog_directory)
+    #     towrite = open('training', 'w')
 
-        for blog_id in ids:
-            path = 'midsize-output/' + blog_id + '.xml'
-            towrite.write(format_to_libsvm(map_unigrams(path, top_words), True) + '\n')
-            completed += 1
-            if (completed % 100) == 0:
-                print '%.2f' % (completed*100/float(n)) + '% of training data written.'
+    #     t.score_joy(True)
+    #     ids = get_list_of_ids('id_scored_joy.txt')
+    #     os.remove('id_scored_joy.txt')
 
-        t.score_valence(False)
-        ids = get_list_of_ids('id_scored_valence.txt')
+    #     n = len(ids)
+    #     completed = 0
 
-        n = n + len(ids)
-        for blog_id in ids:
-            path = 'midsize-output/' + blog_id + '.xml'
-            towrite.write(format_to_libsvm(map_unigrams(path, top_words), False) + '\n')
-            completed += 1
-            if (completed % 100) == 0:
-                print '%.2f' % (completed*100/float(n)) + '% of training data written.'
-        towrite.close()
+    #     for blog_id in ids:
+    #         path = blog_directory + '/' + blog_id + '.xml'
+    #         towrite.write(format_to_libsvm(map_unigrams(path, top_words), True) + '\n')
+    #         completed += 1
+    #         if (completed % 100) == 0:
+    #             print '%.2f' % (completed*100/float(n)) + '% of training data written.'
 
-    def testOne(self):
-        pass
+    #     t.score_joy(False)
+    #     ids = get_list_of_ids('id_scored_joy.txt')
+
+    #     n = n + len(ids)
+    #     for blog_id in ids:
+    #         path = blog_directory + '/' + blog_id + '.xml'
+    #         towrite.write(format_to_libsvm(map_unigrams(path, top_words), False) + '\n')
+    #         completed += 1
+    #         if (completed % 100) == 0:
+    #             print '%.2f' % (completed*100/float(n)) + '% of training data written.'
+    #     towrite.close()
+
+    # def testOne(self):
+    #     pass
 
         # PSEUDOCODE FOR PROCESSING
         # 1. extract_top_words
