@@ -104,6 +104,17 @@ def extract_similarity(top_words):
     return similarity_matrix
 
 
+def extract_top_labels(xml_directory, dictionary):
+    pass
+
+
+def extract_top_labels(xml_directory, dictionary):
+    pass
+
+
+def extract_interval_features(xml_directory, dictionary):
+    pass
+
 
 def extract_top_words(xml_directory):
     # TODO: Get only words with at least five counts, or some way to cut down feature size
