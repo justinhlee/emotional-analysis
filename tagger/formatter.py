@@ -1,15 +1,56 @@
 import os
 import operator
 import math
+from random import randint
 from tagger import *
 
 
+def create_training_set_anew(blog_directory, dict_path):
+    top_words = read_top_words('top_words.txt')
+    t = Tagger(dict_path)
+    t.tag_directory(blog_directory)
+    
+
+def create_training_set_anew(blog_directory, dict_path):
+    top_words = read_top_words('top_words.txt')
+    t = Tagger(dict_path)
+    t.tag_directory(blog_directory)
+    for i in range(1):
+        threshold = 7.0
+        towrite = open('training' + str(i), 'w')
+        t.score_valence(True, i, threshold, 2000)
+        ids = get_list_of_ids('id_scored.txt')
+        n = len(ids)
+        completed = 0
+        for blog_id in ids:
+            path = blog_directory + '/' + blog_id + '.xml'
+            towrite.write(format_to_libsvm(map_unigrams(path, top_words), True) + '\n')
+            completed += 1
+            if (completed % 100) == 0:
+                print '%.2f' % (completed*100/float(n)) + '% of training data written.'
+        t.score_valence(False, i, threshold, n)
+        ids = get_list_of_ids('id_scored.txt')
+        n = n + len(ids)
+        print n
+        for blog_id in ids:
+            path = blog_directory + '/' + blog_id + '.xml'
+            towrite.write(format_to_libsvm(map_unigrams(path, top_words), False) + '\n')
+            completed += 1
+            if (completed % 100) == 0:
+                print '%.2f' % (completed*100/float(n)) + '% of training data written.'
+        towrite.close()
+
+
+
 def create_training_set_nrc(blog_directory, dict_path):
-    top_words = extract_top_words(blog_directory)
+    # top_words = extract_top_words(blog_directory)
+    top_words = read_top_words('top_words.txt')
+    #top_words = extract_top_labels(dict_path)
     t = Tagger(dict_path)
     t.tag_directory(blog_directory)
     for i in range(10):
         towrite = open('training' + str(i), 'w')
+        # threshold for nrc (consider putting it in as argument)
         threshold = 0.25
         t.score_nrc(True, i, threshold, 2000)
         ids = get_list_of_ids('id_scored.txt')
@@ -35,18 +76,25 @@ def create_training_set_nrc(blog_directory, dict_path):
         towrite.close()
 
 
-def create_testing_set_nrc(top_words_directory, testing_directory, dict_path):
-    top_words = extract_top_words(top_words_directory)
+def create_testing_set_nrc(testing_directory, dict_path):
+    #top_words = extract_top_words(top_words_directory)
+    top_words = read_top_words('top_words.txt')
     t = Tagger(dict_path)
     t.tag_directory(testing_directory)
     towrite = open('testing.t', 'w')
-    t.get_high_coverage_blogs(200)
-    ids = get_list_of_ids('id_coverage.txt')
-    get_blogs_from_ids('testing-entries.txt', ids, 'testing-entries')
+    with_id = open('testing_w_id', 'w')
+    ids = []
+    # random entry id
+    for i in range(200):
+        r_int = randint(0, 4789)
+        b_id = str(r_int) + '.txt'
+        ids.append(b_id)
+    get_blogs_from_ids('testing-entries.txt', ids, '../data/testing-entries')
     n = len(ids)
     completed = 0
     for blog_id in ids:
-        path = 'testing-output' + '/' + blog_id + '.xml'
+        path = testing_directory + '/' + blog_id + '.xml'
+        with_id.write(blog_id + '\n')
         towrite.write(format_to_libsvm(map_unigrams(path, top_words), True) + '\n')
         completed += 1
         if (completed % 30) == 0:
@@ -104,20 +152,37 @@ def extract_similarity(top_words):
     return similarity_matrix
 
 
-def extract_top_labels(xml_directory, dictionary):
-    pass
+# def extract_top_labels(xml_directory, dictionary):
+#     pass
 
 
-def extract_top_labels(xml_directory, dictionary):
-    pass
+def extract_top_labels(dict_path):
+    top_words = []
+    f = open(dict_path, 'r')
+    if dict_path == 'nrc.txt':
+        for line in f:
+            tokens = line.split()
+            word = tokens[0]
+            top_words.append(word)
+    f.close()
+    return top_words
 
 
 def extract_interval_features(xml_directory, dictionary):
     pass
 
 
+def read_top_words(file_path):
+    top_words = []
+    f = open(file_path, 'r')
+    for line in f:
+        if len(line.split()) == 1:
+            top_words.append(line.split()[0].lower())
+    f.close()
+    return top_words
+
+
 def extract_top_words(xml_directory):
-    # TODO: Get only words with at least five counts, or some way to cut down feature size
     words = {}
     top_words = []
     files = os.listdir(xml_directory)
@@ -143,12 +208,15 @@ def extract_top_words(xml_directory):
     # for word in words:
     #     if words[word] > 4:
     #         top_words.append(word)
-
     sorted_words = sorted(words.items(), key=operator.itemgetter(1))
     sorted_words = list(reversed(sorted_words))
     for i in range(2000):
         top_words.append(sorted_words[i][0])
-    return top_words
+    towrite = open('top_words.txt', 'w')
+    for word in top_words:
+        towrite.write(word + '\n')
+    towrite.close()
+
 
 
 def map_unigrams(xml_filename, top_words):

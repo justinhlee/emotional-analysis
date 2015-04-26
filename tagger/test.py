@@ -7,19 +7,22 @@ import unittest
 class tagger_test(unittest.TestCase):
 
     # def testTesting(self):
-    #     top_words_directory = 'midsize-output'
-    #     testing_directory = 'testing-output'
+    #     testing_directory = '../data/testing-output'
     #     dict1 = 'nrc.txt'
-    #     create_testing_set_nrc(top_words_directory, testing_directory, dict1)
+    #     create_testing_set_nrc(testing_directory, dict1)
 
     def testTraining(self):
+        # blog_directory = 'midsize-output'
+        # dict1 = 'nrc.txt'
+        # create_training_set_nrc(blog_directory, dict1)
+
         blog_directory = 'midsize-output'
-        dict1 = 'nrc.txt'
-        create_training_set_nrc(blog_directory, dict1)
+        dict1 = 'anew.txt'
+        create_training_set_anew(blog_directory, dict1)
 
     # def testTrainingSet(self):
     #     blog_directory = 'midsize-output'
-    #     top_words = extract_top_words(blog_directory)
+    #     top_words = extract_top_woArds(blog_directory)
     #     print 'Number of features: ' + str(len(top_words))
     #     dict1 = 'anew.txt'
     #     d = dict1

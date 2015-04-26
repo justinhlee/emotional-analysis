@@ -5,18 +5,20 @@ import operator
 class Tagger:
 
     def __init__(self, dict_path):
-        # pass in the dictionary to use for tagging
-        # Valence - unpleasant ---- pleasant
-        # Arousal - Calm ------ Excited
-        # Dominance/Control
-        # Word  Wdnum   ValMn   ValSD   AroMn   AroSD   DomMn   DomSD
-        #  0      1      2        3       4       5      6       7
-        # Dictionary: Word -> [Values: Mean Valence, Mean Arousal, Mean Dominance]
-        # Entries: ID -> Blog Entries
-        # Weighted Entries: ID -> Emotion Words/Total Words percentage
-        # coverage: ID -> Emotion Lemma/Total Lemmas percentage
-        # occurences: ID -> # Dictionary Occurrences
-        # valence_scores: ID -> valence score
+        '''
+        pass in the dictionary to use for tagging
+        Valence - unpleasant ---- pleasant
+        Arousal - Calm ------ Excited
+        Dominance/Control
+        Word  Wdnum   ValMn   ValSD   AroMn   AroSD   DomMn   DomSD
+         0      1      2        3       4       5      6       7
+        Dictionary: Word -> [Values: Mean Valence, Mean Arousal, Mean Dominance]
+        Entries: ID -> Blog Entries
+        Weighted Entries: ID -> Emotion Words/Total Words percentage
+        coverage: ID -> Emotion Lemma/Total Lemmas percentage
+        occurences: ID -> # Dictionary Occurrences
+        valence_scores: ID -> valence score
+        '''
         self.dictionary = {}
         self.entries = {}
         self.coverage = {}
@@ -80,40 +82,44 @@ class Tagger:
                 print str(count) + ' entries tagged.'
 
 
-    # def score_valence(self, from_highest):
-    #     self.valence_scores = {}
-    #     sorted_entries = []
-    #     for entry_id in self.entries:
-    #         entry = self.entries[entry_id]
-    #         lemmas = entry.get_tagged_words()
-    #         score = 0
-    #         sum_val = 0
-    #         min_valence = 10
-    #         max_valence = 0
-    #         for lemma in lemmas:
-    #             value = float(self.dictionary[lemma][0])
-    #             # get range
-    #             if (value < min_valence):
-    #                 min_valence = value
-    #             if (value > max_valence):
-    #                 max_valence = value
-    #             sum_val += value
-    #         emotion_range = max_valence - min_valence
-    #         n = len(lemmas)
-    #         if (n > 0):
-    #             score = sum_val/(len(lemmas))
-    #         if from_highest:
-    #             if (emotion_range < 2) and (score > 8):
-    #                 self.valence_scores[entry_id] = score
-    #         else:
-    #             if (score > 0) and (score < 3):
-    #                 self.valence_scores[entry_id] = score
-    #     sorted_entries = sorted(self.valence_scores.items(), key=operator.itemgetter(1))
-    #     # doesn't matter to sort the list when they're all training
-    #     sorted_entries = list(reversed(sorted_entries))
-    #     towrite = open('id_scored_valence.txt', 'w')
-    #     for i in range(len(sorted_entries)):
-    #         towrite.write(str(sorted_entries[i]) + '\n')
+    def score_valence(self, from_highest, label_id, threshold, max_count):
+        scores = {}
+        count = 0
+        for entry_id in self.entries:
+            entry = self.entries[entry_id]
+            lemmas = entry.get_tagged_words()
+            score = 0
+            sum_val = 0
+            min_valence = 10
+            max_valence = 0
+            for lemma in lemmas:
+                value = float(self.dictionary[lemma][2])
+                # get range
+                if (value < min_valence):
+                    min_valence = value
+                if (value > max_valence):
+                    max_valence = value
+                sum_val += value
+            emotion_range = max_valence - min_valence
+            n = len(lemmas)
+            if (n > 0):
+                score = sum_val/(len(lemmas))
+            if from_highest:
+                if (emotion_range < 2) and (score > 6):
+                    scores[entry_id] = score
+                    count += 1
+            else:
+                if (score > 0) and (score < 4):
+                    scores[entry_id] = score
+                    count += 1
+            if count > max_count:
+                break
+        sorted_entries = sorted(scores.items(), key=operator.itemgetter(1))
+        # doesn't matter to sort the list when they're all training
+        sorted_entries = list(reversed(sorted_entries))
+        towrite = open('id_scored.txt', 'w')
+        for i in range(len(sorted_entries)):
+            towrite.write(str(sorted_entries[i]) + '\n')
 
     # threshold is some value from (0, 1]
     def score_nrc(self, from_highest, emotion_id, threshold, max_count):
