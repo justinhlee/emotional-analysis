@@ -121,6 +121,36 @@ class Tagger:
         for i in range(len(sorted_entries)):
             towrite.write(str(sorted_entries[i]) + '\n')
 
+    def score_nrc_from_list(self, id_list, from_highest, emotion_id, threshold, max_count):
+        scores = {}
+        count = 0
+        for entry_id in id_list:
+            entry = self.entries[entry_id]
+            lemmas = entry.get_tagged_words()
+            score = 0
+            sum_val = 0
+            for lemma in lemmas:
+                value = float(self.dictionary[lemma][emotion_id])
+                sum_val += value
+            n = len(lemmas)
+            if (n > 0):
+                score = sum_val/(float(len(lemmas)))
+            if from_highest:
+                if (score > threshold):
+                    scores[entry_id] = score
+                    count += 1
+            else:
+                if (score == 0):
+                    scores[entry_id] = score
+                    count += 1
+            if count > max_count:
+                break
+        towrite = open('id_scored.txt', 'w')
+        for i in id_list:
+            if i in scores:
+                towrite.write(str((i, scores[i])) + '\n')
+          
+
     # threshold is some value from (0, 1]
     def score_nrc(self, from_highest, emotion_id, threshold, max_count):
         # anger 0

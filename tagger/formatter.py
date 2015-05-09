@@ -5,11 +5,14 @@ from random import randint
 from tagger import *
 
 
-def create_training_set_anew(blog_directory, dict_path):
-    top_words = read_top_words('top_words.txt')
-    t = Tagger(dict_path)
-    t.tag_directory(blog_directory)
+# def create_training_set_anew(blog_directory, dict_path):
+#     top_words = read_top_words('top_words.txt')
+#     t = Tagger(dict_path)
+#     t.tag_directory(blog_directory)
     
+emotions = ['anger', 'anticipation', 'disgust', 'fear'
+            , 'joy', 'negative', 'positive', 'sadness'
+            , 'surprise', 'trust']
 
 def create_training_set_anew(blog_directory, dict_path):
     top_words = read_top_words('top_words.txt')
@@ -99,6 +102,24 @@ def create_testing_set_nrc(testing_directory, dict_path):
         completed += 1
         if (completed % 30) == 0:
             print '%.2f' % (completed*100/float(n)) + '% of testing data written.'
+
+
+def label_testing_set_nrc(testing_directory):
+    blog_directory = testing_directory
+    dict1 = 'nrc.txt'
+    t = Tagger(dict1)
+    t.tag_directory(blog_directory)
+    id_list = get_list_of_ids_for_testing('testing_ids.txt')
+    towrite = open('labeled_testing', 'w')
+    for i in range(10):
+        t.score_nrc_from_list(id_list, True, i, 0.25, 100)
+        toread = open('id_scored.txt')
+        towrite.write(emotions[i] + '\n')
+        for line in toread:
+            towrite.write(line)
+        towrite.write('\n')
+        toread.close()
+    towrite.close()
 
 
 def extract_similarity(top_words):
@@ -252,6 +273,16 @@ def format_to_libsvm(feature_vector, is_label):
         values = '-1 ' + values
     return values
     
+
+def get_list_of_ids_for_testing(path_name):
+    ids = []
+    f = open(path_name)
+    for line in f:
+        end = line.find('.txt')
+        ids.append(line[0: end])
+    f.close()
+    return ids
+
 
 def get_list_of_ids(path_name):
     ids = []

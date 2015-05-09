@@ -12,13 +12,30 @@ class tagger_test(unittest.TestCase):
     #     create_testing_set_nrc(testing_directory, dict1)
 
     def testTraining(self):
-        # blog_directory = 'midsize-output'
-        # dict1 = 'nrc.txt'
-        # create_training_set_nrc(blog_directory, dict1)
+        #label_testing_set_nrc('testing-output')
 
-        blog_directory = 'midsize-output'
-        dict1 = 'anew.txt'
-        create_training_set_anew(blog_directory, dict1)
+        blog_directory = 'testing-output'
+        dict1 = 'nrc.txt'
+        t = Tagger(dict1)
+        t.tag_directory(blog_directory)
+        id_list = get_list_of_ids_for_testing('testing_ids.txt')
+        towrite = open('entries_as_tagged_words', 'w')
+        for i in id_list:
+            towrite.write(str(i) + '\n')
+            for word in t.get_blog_by_id(i):
+                towrite.write(word + ' ')
+            towrite.write('\n')
+            towrite.write('\n')
+
+
+            
+
+        # t.score_nrc_from_list(id_list, True, 1, 0.25, 100)
+        #create_training_set_nrc(blog_directory, dict1)
+
+        # blog_directory = 'midsize-output'
+        # dict1 = 'anew.txt'
+        # create_training_set_anew(blog_directory, dict1)
 
     # def testTrainingSet(self):
     #     blog_directory = 'midsize-output'
